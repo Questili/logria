@@ -11,7 +11,7 @@
     .hero, section { background: rgba(17,24,39,.86); border:1px solid var(--border); border-radius:24px; padding:24px; margin:18px 0; box-shadow:0 20px 60px rgba(0,0,0,.22); }
     h1,h2 { margin:0 0 12px; } .muted { color:var(--muted); }
     .bar { height:18px; border-radius:999px; background:#1f2937; overflow:hidden; border:1px solid var(--border); }
-    .fill { height:100%; width:100%; background:linear-gradient(90deg,var(--brand),#06b6d4,var(--ok)); }
+    .fill { height:100%; width:35%; background:linear-gradient(90deg,var(--brand),#06b6d4,var(--ok)); }
     .grid { display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); }
     .card { padding:16px; border:1px solid var(--border); border-radius:18px; background:#0b1220; }
     .done { color:var(--ok); } .active { color:#38bdf8; } .pending { color:var(--muted); }
@@ -21,19 +21,19 @@
 <body>
 <main>
   <div class="hero">
-    <p class="muted">Last updated: 2026-05-19 22:55 IST</p>
+    <p class="muted">Last updated: 2026-05-19 22:58 IST</p>
     <h1>Logria implementation notes</h1>
     <p>Running notes for turning the planning folder into a working Logria OSS app. This page tracks completion, decisions, tradeoffs, and anything that changed from the specs.</p>
-    <h2>Overall progress: 100%</h2>
+    <h2>Overall progress: 35%</h2>
     <div class="bar" aria-label="18% complete"><div class="fill"></div></div>
   </div>
 
   <section>
     <h2>Progress report</h2>
     <div class="grid">
-      <div class="card"><strong class="done">Done</strong><p>Implemented the app, docs, landing page, Prisma schema, Merlin, connectors, dashboards, plugins, safe actions, tests, CI, and verification scripts.</p></div>
-      <div class="card"><strong class="active">In progress</strong><p>Completed. Verification is passing locally, with Next using Webpack because macOS rejected native SWC/Turbopack bindings and fell back to WASM.</p></div>
-      <div class="card"><strong class="pending">Pending</strong><p>GitHub repository creation/push remains the only external publication step; local Git was initialized and the working implementation is ready for remote creation/push when desired.</p></div>
+      <div class="card"><strong class="done">Done</strong><p>Implemented a working demo-first foundation: landing page, app shell, Prisma schema, demo Merlin, demo connectors, dashboard manifests, plugin loader, safe-action skeleton, docs, tests, CI, and verification scripts.</p></div>
+      <div class="card"><strong class="active">In progress</strong><p>Not complete as a full production app. The repo has a verified vertical slice/foundation, but real auth, persistent workflows, real third-party connector implementations, production AI provider integration, dashboard persistence/rollback, plugin execution isolation, deployment, and domain setup still remain.</p></div>
+      <div class="card"><strong class="pending">Pending</strong><p>GitHub repository creation and push are complete. CI is passing. Remaining work is product-depth implementation, not repo/bootstrap mechanics.</p></div>
     </div>
   </section>
 
@@ -52,14 +52,28 @@
   </section>
 
   <section>
+    <h2>Remaining production work</h2>
+    <ul>
+      <li>Replace demo auth with real auth/session management and persisted workspace membership flows.</li>
+      <li>Persist audit events, AI threads/messages/tool calls, dashboard versions, plugin installs, approvals, and action runs through Prisma-backed server code.</li>
+      <li>Implement real read-only connector adapters for Metabase, PostHog, Sentry, Stripe, and support tools with mocked integration tests.</li>
+      <li>Add production AI provider/tool-calling integration while preserving the deterministic demo path for OSS quickstart.</li>
+      <li>Complete dashboard create/apply/discard/version-history/rollback flows against durable storage.</li>
+      <li>Complete plugin enable/disable UI, permission grants, health handling, and safe runtime contribution loading.</li>
+      <li>Complete approval workflow and durable idempotent safe actions.</li>
+      <li>Add deployment configuration for logria.dev/app.logria.dev and stronger browser/E2E coverage.</li>
+    </ul>
+  </section>
+
+  <section>
     <h2>Completion checklist</h2>
     <ul>
-      <li class="done">Core platform, Prisma schema, permissions, audit</li>
-      <li class="done">Connectors and demo fixtures</li>
-      <li class="done">Merlin AI operator and evidence links</li>
-      <li class="done">Declarative dashboards and customization flow</li>
-      <li class="done">Plugin SDK/loader/sample plugin</li>
-      <li class="done">Safe action gates and audit trail</li>
+      <li class="done">Core platform foundation, Prisma schema, capability helpers, in-memory demo audit</li>
+      <li class="done">Connector contract and demo fixtures</li>
+      <li class="done">Deterministic demo Merlin operator and evidence links</li>
+      <li class="active">Declarative dashboard schema/preview; persistence, apply, version history, rollback still pending</li>
+      <li class="active">Plugin manifest/loader/sample plugin; runtime execution/isolation and enable controls still pending</li>
+      <li class="active">Safe-action skeleton; durable approvals/action runs still pending</li>
       <li class="done">Landing page and app routes</li>
       <li class="done">Docs, CI, demo setup, verification</li>
     </ul>
