@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "next dev --webpack",
     "build": "prisma generate && next build --webpack",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "prisma generate && tsc --noEmit",
     "test": "tsx tests/run-tests.ts",
     "lint": "eslint . --max-warnings=0",
     "prisma:validate": "prisma validate",
