@@ -21,7 +21,7 @@
 <body>
 <main>
   <div class="hero">
-    <p class="muted">Last updated: 2026-05-19 23:45 IST</p>
+    <p class="muted">Last updated: 2026-05-19 23:50 IST</p>
     <h1>Logria implementation notes</h1>
     <p>Running notes for turning the planning folder into a working Logria OSS app. This page tracks completion, decisions, tradeoffs, and anything that changed from the specs.</p>
     <h2>Overall progress: 52%</h2>
@@ -40,7 +40,8 @@
   <section>
     <h2>Decisions and tradeoffs</h2>
     <ul>
-      <li><strong>Verification update:</strong> <code>pnpm verify</code> passes after adding real connector mocked tests and provider-mode tests. Dev server is running on <code>http://localhost:3001</code>; Comet was opened to the app, but Computer Use cannot inspect it because macOS accessibility permissions are not granted for the MCP.</li>
+      <li><strong>Verification update:</strong> <code>pnpm verify</code> passes after adding real connector mocked tests and provider-mode tests. Dev server is running on <code>http://localhost:3001</code>; Comet was opened to the app, but Computer Use access was restored; Comet was tested on /app/ask, Merlin returned an evidence-backed answer, and CI passed on GitHub Actions run 26114074862.</li>
+      <li><strong>CI fix:</strong> GitHub Actions needed Prisma Client generation before typecheck on a clean runner, so the typecheck script now runs <code>prisma generate && tsc --noEmit</code>.</li>
       <li><strong>Current slice:</strong> Added real read-only connector clients, mocked integration coverage, OpenAI Responses tool-calling mode, signed demo sessions, Prisma-backed audit/AI persistence helpers, and an initial migration.</li>
       <li><strong>Route shape:</strong> Using <code>/</code> for the public landing page and <code>/app/*</code> for the authenticated cockpit, matching PLAN.md and preserving docs-domain positioning.</li>
       <li><strong>Demo-first AI:</strong> Merlin uses a deterministic server-side demo operator over typed tools so local OSS quickstart works with no API keys. The tool registry is structured so real model providers can be added without exposing connector secrets.</li>
