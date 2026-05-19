@@ -1,10 +1,12 @@
 import { createHash } from "node:crypto";
 import { emitAuditEvent } from "../audit";
+import { persistAIExchange } from "../persistence";
 import { demoUser, demoWorkspace } from "../demo-data";
 import { hasCapability } from "../permissions";
 import type { Capability, Evidence, RiskLevel } from "../types";
 import { getAllTools } from "../connectors/registry";
 import { redactObject, sanitizeExternalText } from "./redaction";
+import { answerWithOpenAIResponses } from "./provider";
 
 type ToolWithConnector = ReturnType<typeof getAllTools>[number];
 
@@ -37,6 +39,11 @@ function canRunTool(tool: ToolWithConnector, role = demoUser.role): boolean {
 
 export async function answerMerlin(prompt: string): Promise<MerlinAnswer> {
   const cleanedPrompt = sanitizeExternalText(prompt).slice(0, 2000);
+  if (process.env.LOGRIA_AI_MODE === "openai") {
+    const providerAnswer = await answerWithOpenAIResponses(cleanedPrompt);
+    await persistAIExchange({ prompt: cleanedPrompt, answer: providerAnswer.answer, toolCalls: providerAnswer.toolCalls.map((call) => ({ toolId: call.toolId, inputHash: call.inputHash ?? inputHash(cleanedPrompt), outputSummary: call.outputSummary, riskLevel: call.riskLevel })) }).catch(() => undefined);
+    return providerAnswer;
+  }
   if (/secret|api key|token|credential|password/i.test(cleanedPrompt)) {
     emitAuditEvent({ workspaceId: demoWorkspace.id, actorUserId: demoUser.id, eventType: "ai.refused", riskLevel: "sensitive_read", targetType: "ai_prompt", reason: "Secret extraction request refused", metadata: { prompt: cleanedPrompt } });
     return { answer: "I can’t reveal secrets, tokens, raw credentials, or hidden connector configuration. I can help review connector health or audit history instead.", evidence: [], toolCalls: [], partial: false, refused: true };
@@ -79,5 +86,6 @@ export async function answerMerlin(prompt: string): Promise<MerlinAnswer> {
     ...summaries.map((summary) => `• ${summary}`),
     partial ? "Some sources were unavailable or unauthorized, so this answer is partial." : "All selected demo sources returned evidence.",
   ].join("\n");
+  await persistAIExchange({ prompt: cleanedPrompt, answer, toolCalls: toolCalls.map((call) => ({ ...call, inputHash: inputHash(cleanedPrompt) })) }).catch(() => undefined);
   return { answer, evidence, toolCalls, partial };
 }

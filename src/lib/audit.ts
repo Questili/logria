@@ -1,5 +1,6 @@
 import type { RiskLevel } from "./types";
 import { demoWorkspace, demoUser } from "./demo-data";
+import { listPersistedAuditEvents, persistAuditEvent } from "./persistence";
 
 export type AuditEvent = {
   id: string;
@@ -36,11 +37,23 @@ export function emitAuditEvent(event: Omit<AuditEvent, "id" | "createdAt">): Aud
     createdAt: new Date().toISOString(),
   };
   auditEvents.unshift(created);
+  void persistAuditEvent(event).catch(() => undefined);
   return created;
+}
+
+export async function emitAuditEventAsync(event: Omit<AuditEvent, "id" | "createdAt">): Promise<AuditEvent> {
+  const persisted = await persistAuditEvent(event).catch(() => null);
+  if (persisted) return persisted;
+  return emitAuditEvent(event);
 }
 
 export function listAuditEvents(workspaceId = demoWorkspace.id): AuditEvent[] {
   return auditEvents.filter((event) => event.workspaceId === workspaceId);
+}
+
+export async function listAuditEventsAsync(workspaceId = demoWorkspace.id): Promise<AuditEvent[]> {
+  const persisted = await listPersistedAuditEvents(workspaceId).catch(() => null);
+  return persisted ?? listAuditEvents(workspaceId);
 }
 
 export function resetAuditEventsForTests(): void {

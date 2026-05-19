@@ -15,3 +15,8 @@ Merlin is an operator assistant over registered tools. It is not a raw SQL shell
 ## Demo mode
 
 The local demo uses deterministic server-side logic over fake data so contributors can verify the UX without model-provider keys or third-party credentials.
+
+
+## Provider mode
+
+Set `LOGRIA_AI_MODE=openai` and `OPENAI_API_KEY` to route Merlin through the OpenAI Responses API with function tools generated from Logria's server-side tool registry. Demo mode remains the default so local contributors can run without model-provider credentials.
