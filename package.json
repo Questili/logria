@@ -1,0 +1,39 @@
+{
+  "name": "logria",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Open-source AI operations cockpit for modern SaaS teams.",
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@10.32.1",
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "prisma generate && next build --webpack",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx tests/run-tests.ts",
+    "lint": "eslint . --max-warnings=0",
+    "prisma:validate": "prisma validate",
+    "secret:scan": "node scripts/secret-scan.mjs",
+    "link:check": "node scripts/link-check.mjs",
+    "verify": "pnpm prisma:validate && pnpm typecheck && pnpm test && pnpm lint && pnpm build && pnpm secret:scan && pnpm link:check"
+  },
+  "dependencies": {
+    "@prisma/client": "latest",
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "dotenv": "17.4.2",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "latest",
+    "prisma": "latest",
+    "tsx": "4.21.0",
+    "typescript": "latest",
+    "typescript-eslint": "latest"
+  }
+}

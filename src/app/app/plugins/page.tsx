@@ -1,0 +1,3 @@
+import { AppShell } from "@/components/AppShell";
+import { loadLocalPlugins } from "@/lib/plugins/loader";
+export default function PluginsPage() { const plugins = loadLocalPlugins(); return <AppShell title="Guilds Plugin Review"><div className="grid">{plugins.map((plugin) => <article className="card" key={plugin.manifest.id} style={{ padding: 20 }}><h2>{plugin.manifest.name}</h2><p className="muted">{plugin.status} · {plugin.manifest.publisher} · {plugin.manifest.version}</p><p>Permissions: {plugin.manifest.requestedPermissions.join(", ") || "none"}</p><p>Secrets: {plugin.manifest.requestedSecrets.join(", ") || "none"}</p><p>Network: {plugin.manifest.networkDomains.join(", ") || "none"}</p><p className="muted">{plugin.health}</p></article>)}</div></AppShell>; }

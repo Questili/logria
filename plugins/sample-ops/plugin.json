@@ -1,0 +1,23 @@
+{
+  "id": "sample-ops",
+  "name": "Sample Ops Guild",
+  "version": "0.1.0",
+  "publisher": "Questili",
+  "license": "Apache-2.0",
+  "homepage": "https://logria.dev/plugins/sample-ops",
+  "repository": "https://github.com/questili/logria",
+  "compatibility": { "logria": ">=0.1.0" },
+  "requestedPermissions": ["connector.view_health", "product_analytics.view"],
+  "requestedSecrets": [],
+  "networkDomains": [],
+  "dataCategories": ["demo ops health", "demo product events"],
+  "contributes": {
+    "connectors": ["sample_ops.demo"],
+    "tools": ["sample_ops.ops_digest"],
+    "widgets": ["sample_ops.ops_digest_card"],
+    "actions": []
+  },
+  "riskLevels": ["read"],
+  "auditEvents": ["plugin.sample_ops.digest_rendered"],
+  "demoFixtures": true
+}

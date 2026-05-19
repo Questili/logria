@@ -1,0 +1,3 @@
+import { AppShell } from "@/components/AppShell";
+import { connectors } from "@/lib/connectors/registry";
+export default async function ConnectorsPage() { const health = await Promise.all(connectors.map(async (connector) => ({ connector, health: await connector.healthCheck() }))); return <AppShell title="Connectors"><div className="grid cols-3">{health.map(({ connector, health }) => <article className="card" key={connector.id} style={{ padding: 20 }}><h2>{connector.name}</h2><p className="muted">{connector.category} · {connector.version}</p><p>Status: {health.status} · {health.latencyMs}ms</p><p className="muted">Secrets stay server-side. Redacts: {connector.redactionPolicy.join(", ")}</p></article>)}</div></AppShell>; }

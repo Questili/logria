@@ -1,0 +1,2 @@
+import { AppShell } from "@/components/AppShell";
+export default function CompliancePage() { return <AppShell title="Compliance"><section className="card" style={{ padding: 24 }}><h2>Compliance evidence, not compliance magic.</h2><p className="muted">Logria collects operational evidence, permissions, approvals, and audit history. It does not make a company compliant by itself.</p></section></AppShell>; }

@@ -1,0 +1,326 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum MembershipRole {
+  owner
+  admin
+  support
+  engineering
+  revenue
+  auditor
+}
+
+enum MembershipStatus {
+  active
+  invited
+  suspended
+}
+
+enum RiskLevel {
+  read
+  sensitive_read
+  low_write
+  high_write
+  destructive
+}
+
+enum ConnectorStatus {
+  demo
+  healthy
+  degraded
+  failing
+  disabled
+}
+
+model Workspace {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  memberships Membership[]
+  permissionGrants PermissionGrant[]
+  auditEvents AuditEvent[]
+  connectorInstallations ConnectorInstallation[]
+  sourceLinks SourceObjectLink[]
+  aiThreads AIOperatorThread[]
+  dashboardManifests DashboardManifest[]
+  layoutPreferences LayoutPreference[]
+  pluginInstallations PluginInstallation[]
+  approvalRequests ApprovalRequest[]
+  actionRuns OpsActionRun[]
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  memberships Membership[]
+  auditEvents AuditEvent[] @relation("ActorAuditEvents")
+  aiMessages AIMessage[]
+}
+
+model Membership {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        MembershipRole
+  status      MembershipStatus @default(active)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([workspaceId, userId])
+}
+
+model PermissionGrant {
+  id          String   @id @default(cuid())
+  workspaceId String
+  subjectType String
+  subjectId   String
+  permission  String
+  scope       Json?
+  grantedBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  @@index([workspaceId, subjectType, subjectId])
+}
+
+model AuditEvent {
+  id          String   @id @default(cuid())
+  workspaceId String
+  actorUserId String?
+  eventType   String
+  riskLevel   RiskLevel
+  targetType  String
+  targetId    String?
+  reason      String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  actor      User? @relation("ActorAuditEvents", fields: [actorUserId], references: [id])
+  aiToolCalls AIToolCall[]
+}
+
+model ConnectorInstallation {
+  id          String   @id @default(cuid())
+  workspaceId String
+  connectorId String
+  displayName String
+  status      ConnectorStatus @default(demo)
+  configMetadata Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  credentials ConnectorCredential[]
+  healthChecks ConnectorHealthCheck[]
+  @@index([workspaceId, connectorId])
+}
+
+model ConnectorCredential {
+  id             String   @id @default(cuid())
+  installationId String
+  encryptedValue String
+  secretRef      String?
+  rotatedAt      DateTime?
+  createdAt      DateTime @default(now())
+  installation   ConnectorInstallation @relation(fields: [installationId], references: [id], onDelete: Cascade)
+}
+
+model ConnectorHealthCheck {
+  id             String   @id @default(cuid())
+  installationId String
+  status         ConnectorStatus
+  latencyMs      Int
+  lastSuccessAt  DateTime?
+  lastFailureAt  DateTime?
+  errorSummary   String?
+  createdAt      DateTime @default(now())
+  installation   ConnectorInstallation @relation(fields: [installationId], references: [id], onDelete: Cascade)
+}
+
+model SourceObjectLink {
+  id               String   @id @default(cuid())
+  workspaceId      String
+  sourceType       String
+  externalObjectId String
+  sourceUrl        String
+  displayMetadata  Json?
+  createdAt        DateTime @default(now())
+  workspace        Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  evidenceLinks    EvidenceLink[]
+  @@index([workspaceId, sourceType, externalObjectId])
+}
+
+model AIOperatorThread {
+  id          String   @id @default(cuid())
+  workspaceId String
+  title       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  messages    AIMessage[]
+}
+
+model AIMessage {
+  id        String   @id @default(cuid())
+  threadId  String
+  authorUserId String?
+  role      String
+  content   String
+  redactionStatus String @default("redacted")
+  createdAt DateTime @default(now())
+  thread    AIOperatorThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  author    User? @relation(fields: [authorUserId], references: [id])
+}
+
+model AIToolCall {
+  id            String   @id @default(cuid())
+  workspaceId   String
+  auditEventId  String?
+  toolId        String
+  inputHash     String
+  outputSummary String
+  riskLevel     RiskLevel
+  createdAt     DateTime @default(now())
+  auditEvent    AuditEvent? @relation(fields: [auditEventId], references: [id])
+  evidenceLinks EvidenceLink[]
+}
+
+model EvidenceLink {
+  id            String   @id @default(cuid())
+  toolCallId    String?
+  sourceLinkId  String?
+  sourceType    String
+  externalUrl   String
+  externalObjectId String
+  confidence    Float
+  observedAt    DateTime @default(now())
+  toolCall      AIToolCall? @relation(fields: [toolCallId], references: [id])
+  sourceLink    SourceObjectLink? @relation(fields: [sourceLinkId], references: [id])
+}
+
+model DashboardManifest {
+  id          String   @id @default(cuid())
+  workspaceId String
+  title       String
+  scope       String
+  activeVersionId String?
+  manifest    Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  versions    DashboardVersion[]
+}
+
+model DashboardVersion {
+  id          String   @id @default(cuid())
+  dashboardId String
+  version     Int
+  prompt      String?
+  diff        Json?
+  manifest    Json
+  authorUserId String?
+  modelProvider String?
+  validationResult Json
+  createdAt   DateTime @default(now())
+  dashboard   DashboardManifest @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+  @@unique([dashboardId, version])
+}
+
+model LayoutPreference {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String?
+  dashboardId String
+  scope       String
+  settings    Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model PluginInstallation {
+  id          String   @id @default(cuid())
+  workspaceId String
+  pluginId    String
+  version     String
+  source      String
+  status      String
+  manifest    Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  permissionGrants PluginPermissionGrant[]
+  auditEvents PluginAuditEvent[]
+}
+
+model PluginPermissionGrant {
+  id          String @id @default(cuid())
+  installationId String
+  capability String
+  scope Json?
+  createdAt DateTime @default(now())
+  installation PluginInstallation @relation(fields: [installationId], references: [id], onDelete: Cascade)
+}
+
+model PluginAuditEvent {
+  id          String @id @default(cuid())
+  installationId String
+  eventType String
+  metadata Json?
+  createdAt DateTime @default(now())
+  installation PluginInstallation @relation(fields: [installationId], references: [id], onDelete: Cascade)
+}
+
+model ApprovalRequest {
+  id          String @id @default(cuid())
+  workspaceId String
+  requestedAction String
+  requestedByUserId String
+  status String
+  expiresAt DateTime?
+  metadata Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  decisions ApprovalDecision[]
+}
+
+model ApprovalDecision {
+  id          String @id @default(cuid())
+  requestId   String
+  approverUserId String
+  decision    String
+  reason      String?
+  createdAt   DateTime @default(now())
+  request     ApprovalRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+}
+
+model OpsActionRun {
+  id          String @id @default(cuid())
+  workspaceId String
+  actionId    String
+  actorUserId String
+  targetType  String
+  targetId    String
+  reason      String
+  idempotencyKey String
+  riskLevel   RiskLevel
+  status      String
+  dryRun      Json?
+  result      Json?
+  rollbackNotes String?
+  createdAt   DateTime @default(now())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  @@unique([workspaceId, actionId, idempotencyKey])
+}
